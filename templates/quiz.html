@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Quiz ({{ questions|length }} questions)</h2>
+<form method="POST" action="">
+    <input type="hidden" name="total" value="{{ questions|length }}">
+    {% for q in questions %}
+    {% set question_index = loop.index0 %}  {# store outer index #}
+    <div class="card mb-3">
+        <div class="card-header">
+            <strong>{{ q.japanese }}</strong> ({{ q.reading }})
+        </div>
+        <div class="card-body">
+            <input type="hidden" name="q_{{ question_index }}_id" value="{{ q.id }}">
+            {% for option in q.options %}
+            <div class="form-check">
+                <input class="form-check-input" type="radio" 
+                       name="q_{{ question_index }}_answer" 
+                       id="q{{ question_index }}_{{ loop.index }}" 
+                       value="{{ option }}" required>
+                <label class="form-check-label" for="q{{ question_index }}_{{ loop.index }}">
+                    {{ option }}
+                </label>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">Submit Answers</button>
+</form>
+{% endblock %}

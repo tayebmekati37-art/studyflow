@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <h2>Your Progress by JLPT Level</h2>
+        <canvas id="progressChart" width="400" height="400"></canvas>
+    </div>
+    <div class="col-md-6">
+        <h2>Recent Words Added</h2>
+        <ul class="list-group">
+            {% for word in recent_words %}
+                <li class="list-group-item">
+                    <strong>{{ word.japanese_word }}</strong> ({{ word.reading }}) - {{ word.meaning }}
+                    <span class="badge bg-secondary">{{ word.jlpt_level }}</span>
+                </li>
+            {% else %}
+                <li class="list-group-item">No words yet. <a href="{{ url_for('add_word') }}">Add your first word</a>.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Fetch progress data from API and render chart
+    fetch('{{ url_for("api_progress") }}')
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['N5', 'N4', 'N3', 'N2', 'N1'],
+                    datasets: [{
+                        label: 'Words Learned',
+                        data: [data.N5, data.N4, data.N3, data.N2, data.N1],
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, stepSize: 1 }
+                    }
+                }
+            });
+        });
+</script>
+{% endblock %}

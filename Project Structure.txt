@@ -1,0 +1,23 @@
+studyflow/
+├── app.py                  # Main application factory
+├── models.py               # SQLAlchemy models
+├── forms.py                # WTForms
+├── config.py               # Configuration (environment variables)
+├── requirements.txt        # Python dependencies
+├── run.py                  # Entry point for development
+├── instance/               # (optional) instance folder for config
+├── static/
+│   ├── css/
+│   │   └── style.css       # Custom styles
+│   └── js/
+│       └── main.js         # Custom JavaScript (Chart.js init)
+└── templates/
+    ├── base.html           # Base template with Bootstrap nav
+    ├── index.html          # Dashboard
+    ├── login.html
+    ├── register.html
+    ├── add_word.html
+    ├── words.html          # List all words with search/filter
+    ├── edit_word.html
+    ├── quiz.html           # Quiz page (questions)
+    └── quiz_result.html    # Quiz result and score
