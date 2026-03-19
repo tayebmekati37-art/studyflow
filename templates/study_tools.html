@@ -1,0 +1,95 @@
+﻿{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2 class="mb-4">AI Study Tools</h2>
+        <ul class="nav nav-tabs mb-3" id="toolTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary" type="button" role="tab">ðŸ“ Summarize</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="flashcard-tab" data-bs-toggle="tab" data-bs-target="#flashcard" type="button" role="tab">ðŸƒ Flashcards</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="quiz-tab" data-bs-toggle="tab" data-bs-target="#quiz" type="button" role="tab">â“ Quiz</button>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="toolTabsContent">
+            <!-- Summary Tab -->
+            <div class="tab-pane fade show active" id="summary" role="tabpanel">
+                <form method="POST" action="{{ url_for('process_text') }}" enctype="multipart/form-data">
+                    <input type="hidden" name="tool_type" value="summary">
+                    <div class="mb-3">
+                        <label for="text_summary" class="form-label">Paste your text or upload a PDF</label>
+                        <textarea class="form-control" id="text_summary" name="text" rows="6" placeholder="Paste article, notes, or study material..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="pdf_summary" class="form-label">Or upload PDF</label>
+                        <input class="form-control" type="file" name="pdf_file" accept=".pdf">
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label for="source_lang_summary" class="form-label">Source language (optional)</label>
+                            <input type="text" class="form-control" name="source_lang" placeholder="e.g., fr, ar, auto">
+                        </div>
+                        <div class="col">
+                            <label for="target_lang_summary" class="form-label">Target language</label>
+                            <input type="text" class="form-control" name="target_lang" value="en" placeholder="e.g., en, fr, ar">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Generate Summary</button>
+                </form>
+            </div>
+            
+            <!-- Flashcard Tab -->
+            <div class="tab-pane fade" id="flashcard" role="tabpanel">
+                <form method="POST" action="{{ url_for('process_text') }}" enctype="multipart/form-data">
+                    <input type="hidden" name="tool_type" value="flashcard">
+                    <div class="mb-3">
+                        <label for="text_flash" class="form-label">Paste your text or upload a PDF</label>
+                        <textarea class="form-control" id="text_flash" name="text" rows="6" placeholder="Paste article, notes, or study material..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="pdf_flash" class="form-label">Or upload PDF</label>
+                        <input class="form-control" type="file" name="pdf_file" accept=".pdf">
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label for="source_lang_flash" class="form-label">Source language (optional)</label>
+                            <input type="text" class="form-control" name="source_lang" placeholder="auto">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Generate Flashcards</button>
+                </form>
+            </div>
+            
+            <!-- Quiz Tab -->
+            <div class="tab-pane fade" id="quiz" role="tabpanel">
+                <form method="POST" action="{{ url_for('process_text') }}" enctype="multipart/form-data">
+                    <input type="hidden" name="tool_type" value="quiz">
+                    <div class="mb-3">
+                        <label for="text_quiz" class="form-label">Paste your text or upload a PDF</label>
+                        <textarea class="form-control" id="text_quiz" name="text" rows="6" placeholder="Paste article, notes, or study material..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="pdf_quiz" class="form-label">Or upload PDF</label>
+                        <input class="form-control" type="file" name="pdf_file" accept=".pdf">
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label for="source_lang_quiz" class="form-label">Source language (optional)</label>
+                            <input type="text" class="form-control" name="source_lang" placeholder="auto">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Generate Quiz</button>
+                </form>
+            </div>
+        </div>
+        
+        <hr class="my-4">
+        <a href="{{ url_for('history') }}" class="btn btn-outline-secondary">View My History</a>
+    </div>
+</div>
+{% endblock %}

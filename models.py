@@ -32,3 +32,13 @@ class QuizResult(db.Model):
     score = db.Column(db.Integer, nullable=False)          # number correct
     total_questions = db.Column(db.Integer, nullable=False)
     date_taken = db.Column(db.DateTime, default=datetime.utcnow)
+class Generation(db.Model):
+    __tablename__ = 'generations'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    tool_type = db.Column(db.Enum('summary', 'flashcard', 'quiz'), nullable=False)
+    input_text = db.Column(db.Text, nullable=False)
+    output_content = db.Column(db.JSON, nullable=False)
+    source_language = db.Column(db.String(10), default='auto')
+    target_language = db.Column(db.String(10), default='en')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)

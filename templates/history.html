@@ -1,0 +1,33 @@
+﻿{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col">
+        <h2 class="mb-4">My Generation History</h2>
+        {% if generations %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Date</th>
+                        <th>Preview</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for gen in generations %}
+                    <tr>
+                        <td>{{ gen.tool_type|capitalize }}</td>
+                        <td>{{ gen.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ gen.input_text[:50] }}...</td>
+                        <td><a href="{{ url_for('view_generation', gen_id=gen.id) }}" class="btn btn-sm btn-info">View</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No generations yet. <a href="{{ url_for('study_tools') }}">Try the AI tools!</a></p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

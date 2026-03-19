@@ -1,0 +1,60 @@
+﻿{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2 class="mb-4">Your {{ tool_type|capitalize }}</h2>
+        
+        {% if tool_type == 'summary' %}
+            <div class="card">
+                <div class="card-body">
+                    {{ output }}
+                </div>
+            </div>
+        {% elif tool_type == 'flashcard' %}
+            {% set flashcards = output|tojson %}
+            {% if flashcards.error %}
+                <div class="alert alert-danger">Error: {{ flashcards.error }}</div>
+                <pre>{{ flashcards.raw }}</pre>
+            {% else %}
+                {% for card in flashcards %}
+                <div class="card mb-3">
+                    <div class="card-header">{{ card.front }}</div>
+                    <div class="card-body">{{ card.back }}</div>
+                </div>
+                {% endfor %}
+                <a href="#" class="btn btn-success" onclick="exportAnki()">Export to Anki (CSV)</a>
+            {% endif %}
+        {% elif tool_type == 'quiz' %}
+            {% set quiz = output|tojson %}
+            {% if quiz.error %}
+                <div class="alert alert-danger">Error: {{ quiz.error }}</div>
+                <pre>{{ quiz.raw }}</pre>
+            {% else %}
+                {% for q in quiz %}
+                <div class="card mb-3">
+                    <div class="card-header">{{ loop.index }}. {{ q.question }}</div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            {% for opt in q.options %}
+                            <li>{% if opt == q.correct %}âœ… {% else %}â—‹ {% endif %}{{ opt }}</li>
+                            {% endfor %}
+                        </ul>
+                        <p class="text-muted mt-2"><strong>Explanation:</strong> {{ q.explanation }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endif %}
+        
+        <a href="{{ url_for('study_tools') }}" class="btn btn-primary mt-3">Try Another</a>
+        <a href="{{ url_for('history') }}" class="btn btn-secondary mt-3">View History</a>
+    </div>
+</div>
+
+<script>
+function exportAnki() {
+    alert("Anki export will be implemented soon!");
+}
+</script>
+{% endblock %}
