@@ -1,8 +1,38 @@
 ﻿# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
 venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Flask
+instance/
+.webassets-cache
 .env
+.flaskenv
+
+# Database
 *.db
 *.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 .DS_Store
+
+# Logs
+logs/
+*.log
+
+# Byte-compiled
+__pycache__/
+*.py[cod]
+*.class
