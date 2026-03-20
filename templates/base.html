@@ -28,13 +28,15 @@
                     {% endif %}
                 </ul>
                 <ul class="navbar-nav">
-                    {% if current_user.is_authenticated %}
-                        <li class="nav-item"><span class="navbar-text text-white me-3">Hello, {{ current_user.username }}</span></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
-                    {% else %}
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Login</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('register') }}">Register</a></li>
-                    {% endif %}
+                {% if current_user.is_authenticated %}
+                  <li class="nav-item"><span class="navbar-text text-white me-3">Hello, {{ current_user.username }}</span></li>
+                  <li class="nav-item"><a class="nav-link" href="#" id="darkModeToggle">🌓 Dark Mode</a></li>
+                  <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
+        {% else %}
+                  <li class="nav-item"><a class="nav-link" href="#" id="darkModeToggle">🌓 Dark Mode</a></li>
+                  <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Login</a></li>
+                  <li class="nav-item"><a class="nav-link" href="{{ url_for('register') }}">Register</a></li>
+         {% endif %}
                 </ul>
             </div>
         </div>
@@ -61,6 +63,28 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+    // Dark mode toggle with DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggle = document.getElementById('darkModeToggle');
+        if (toggle) {
+            // Load saved preference
+            if (localStorage.getItem('darkMode') === 'enabled') {
+                document.body.classList.add('dark');
+            }
+            toggle.addEventListener('click', function() {
+                document.body.classList.toggle('dark');
+                if (document.body.classList.contains('dark')) {
+                    localStorage.setItem('darkMode', 'enabled');
+                } else {
+                    localStorage.setItem('darkMode', 'disabled');
+                }
+            });
+        } else {
+            console.error('Dark mode toggle button not found!');
+        }
+    });
+</script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -1,6 +1,22 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">🔥 Current Streak: {{ current_user.streak }} days</h5>
+                <p class="card-text">Keep logging in daily to maintain your streak!</p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row mt-5">
+    <div class="col">
+        <h3>Words Added Per Day (Last 30 Days)</h3>
+        <canvas id="progressOverTimeChart" width="400" height="200"></canvas>
+    </div>
+</div>
 <div class="row">
     <div class="col-md-6">
         <h2>Your Progress by JLPT Level</h2>
@@ -48,5 +64,34 @@
                 }
             });
         });
+
+        fetch('{{ url_for("progress_over_time") }}')
+    .then(response => response.json())
+    .then(data => {
+        const ctx = document.getElementById('progressOverTimeChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.dates,
+                datasets: [{
+                    label: 'Words Added',
+                    data: data.counts,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    fill: true,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        stepSize: 1
+                    }
+                }
+            }
+        });
+    });
 </script>
 {% endblock %}

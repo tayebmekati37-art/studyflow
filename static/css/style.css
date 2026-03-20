@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     --bg-color: #f8f9fa;
     --text-color: #212529;
     --card-bg: #ffffff;
@@ -24,4 +24,16 @@ body {
 
 .navbar {
     background-color: var(--navbar-bg) !important;
+}
+.card, .card-body, .card-header {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}
+
+.card-title, .card-text, .card-header strong {
+    color: var(--text-color);
+}
+
+.navbar-text {
+    color: white !important;
 }

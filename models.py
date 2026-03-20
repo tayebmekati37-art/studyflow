@@ -14,7 +14,8 @@ class User(UserMixin, db.Model):
 
     words = db.relationship('Word', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     quiz_results = db.relationship('QuizResult', backref='user', lazy='dynamic', cascade='all, delete-orphan')
-
+    streak = db.Column(db.Integer, default=0)
+    last_login_date = db.Column(db.Date, nullable=True)
 class Word(db.Model):
     __tablename__ = 'words'
     id = db.Column(db.Integer, primary_key=True)

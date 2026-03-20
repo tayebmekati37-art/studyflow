@@ -1,13 +1,16 @@
 import os
-from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
+from flask import Flask, render_template, redirect, url_for, flash, request, jsonify, Response
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, Word, QuizResult, Generation
 from forms import RegistrationForm, LoginForm, WordForm
 from config import Config
-from sqlalchemy import func
+from sqlalchemy import func, cast, Date
 import random
 import json
+from datetime import date, timedelta
+import csv
+from io import StringIO
 
 # AI imports
 from ai_service import generate_summary, generate_flashcards, generate_quiz
@@ -54,6 +57,19 @@ def create_app(config_class=Config):
             user = User.query.filter_by(email=form.email.data).first()
             if user and check_password_hash(user.password_hash, form.password.data):
                 login_user(user)
+
+                # Update streak
+                today = date.today()
+                if user.last_login_date:
+                    if user.last_login_date == today - timedelta(days=1):
+                        user.streak += 1
+                    elif user.last_login_date < today:
+                        user.streak = 1
+                else:
+                    user.streak = 1
+                user.last_login_date = today
+                db.session.commit()
+
                 next_page = request.args.get('next')
                 return redirect(next_page) if next_page else redirect(url_for('index'))
             else:
@@ -69,7 +85,6 @@ def create_app(config_class=Config):
     @app.route('/')
     @login_required
     def index():
-        # Dashboard: count words per JLPT level for current user
         counts = db.session.query(Word.jlpt_level, func.count(Word.id)).filter_by(user_id=current_user.id).group_by(Word.jlpt_level).all()
         levels = ['N5','N4','N3','N2','N1']
         data = {level: 0 for level in levels}
@@ -177,23 +192,60 @@ def create_app(config_class=Config):
             })
         return render_template('quiz.html', questions=questions)
 
-    # ---------- NEW AI TOOL ROUTES ----------
+    # ---------- New Features: CSV Export & Progress Over Time ----------
+    @app.route('/export_words')
+    @login_required
+    def export_words():
+        words = Word.query.filter_by(user_id=current_user.id).all()
+        si = StringIO()
+        cw = csv.writer(si)
+        cw.writerow(['Japanese', 'Reading', 'Meaning', 'JLPT Level', 'Created'])
+        for word in words:
+            cw.writerow([word.japanese_word, word.reading, word.meaning, word.jlpt_level, word.created_at])
+        output = si.getvalue()
+        return Response(
+            output,
+            mimetype='text/csv',
+            headers={'Content-Disposition': 'attachment; filename=studyflow_words.csv'}
+        )
+
+    @app.route('/api/progress_over_time')
+    @login_required
+    def progress_over_time():
+        end_date = date.today()
+        start_date = end_date - timedelta(days=30)
+        counts = db.session.query(
+            cast(Word.created_at, Date).label('date'),
+            func.count(Word.id).label('count')
+        ).filter(
+            Word.user_id == current_user.id,
+            Word.created_at >= start_date
+        ).group_by(cast(Word.created_at, Date)).all()
+        # Build dictionary for all dates
+        result = {}
+        for i in range(31):
+            d = start_date + timedelta(days=i)
+            result[d] = 0
+        for row in counts:
+            result[row.date] = row.count
+        dates = [d.strftime('%Y-%m-%d') for d in result.keys()]
+        counts_list = list(result.values())
+        return jsonify({'dates': dates, 'counts': counts_list})
+
+    # ---------- AI Tool Routes ----------
     @app.route('/study_tools')
     @login_required
     def study_tools():
-        """Main AI tools page."""
         return render_template('study_tools.html')
 
     @app.route('/process_text', methods=['POST'])
     @login_required
     def process_text():
-        """Handle text/PDF input and generate AI output."""
-        tool_type = request.form.get('tool_type')  # summary, flashcard, quiz
+        tool_type = request.form.get('tool_type')
         text_input = request.form.get('text', '')
         source_lang = request.form.get('source_lang', 'auto')
         target_lang = request.form.get('target_lang', 'en')
-        
-        # Handle file upload if present
+
         if 'pdf_file' in request.files:
             pdf_file = request.files['pdf_file']
             if pdf_file.filename != '':
@@ -201,12 +253,11 @@ def create_app(config_class=Config):
                 text_input = ''
                 for page in pdf_reader.pages:
                     text_input += page.extract_text()
-        
+
         if not text_input:
             flash('Please provide text or upload a PDF.', 'danger')
             return redirect(url_for('study_tools'))
-        
-        # Generate based on tool type
+
         try:
             if tool_type == 'summary':
                 output = generate_summary(text_input, source_lang, target_lang)
@@ -220,25 +271,22 @@ def create_app(config_class=Config):
             else:
                 flash('Invalid tool type.', 'danger')
                 return redirect(url_for('study_tools'))
-            
-            # Save generation to database
+
             generation = Generation(
                 user_id=current_user.id,
                 tool_type=tool_type,
-                input_text=text_input[:500],  # Truncate for storage
+                input_text=text_input[:500],
                 output_content=output_json,
                 source_language=source_lang,
                 target_language=target_lang
             )
             db.session.add(generation)
             db.session.commit()
-            
-            # Pass result to result page
-            return render_template('tool_result.html', 
+
+            return render_template('tool_result.html',
                                    tool_type=tool_type,
                                    output=output_json,
                                    generation_id=generation.id)
-        
         except Exception as e:
             flash(f'Error generating content: {str(e)}', 'danger')
             return redirect(url_for('study_tools'))
@@ -246,7 +294,6 @@ def create_app(config_class=Config):
     @app.route('/history')
     @login_required
     def history():
-        """Show user's generation history."""
         generations = Generation.query.filter_by(user_id=current_user.id)\
                                       .order_by(Generation.created_at.desc())\
                                       .all()
@@ -255,17 +302,16 @@ def create_app(config_class=Config):
     @app.route('/generation/<int:gen_id>')
     @login_required
     def view_generation(gen_id):
-        """View a specific generation."""
         gen = Generation.query.get_or_404(gen_id)
         if gen.user_id != current_user.id:
             flash('Access denied.', 'danger')
             return redirect(url_for('history'))
-        return render_template('tool_result.html', 
+        return render_template('tool_result.html',
                                tool_type=gen.tool_type,
                                output=gen.output_content,
                                generation=gen)
 
-    # API endpoint for progress chart data
+    # API endpoint for progress chart data (original)
     @app.route('/api/progress')
     @login_required
     def api_progress():
